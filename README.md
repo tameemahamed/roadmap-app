@@ -113,4 +113,153 @@ now in terminal run
 php artisan db:seed
 ```
 
+## User Authentication
+Laravel Breeze provides user authentication by default. But it does not comes with `Login using username and password`. Also it does not provides `Email verification` by default. So we will implement these first.
+
+### Login Using Username and Password
+In `app/Models/User.php`
+```php
+    protected $fillable = [
+        'name',
+        'email',
+        'username',
+        'password',
+    ];
+```
+In `app/Http/Requests/Auth/LoginRequest.php`
+```php
+    public function rules(): array
+    {
+        return [
+            'login' => ['required', 'string'],
+            'password' => ['required', 'string'],
+        ];
+    }
+    public function authenticate(): void
+    {
+        $this->ensureIsNotRateLimited();
+
+        $credentials = $this->only('login', 'password');
+
+        $field = filter_var($credentials['login'], FILTER_VALIDATE_EMAIL)
+            ? 'email'
+            : 'username';
+
+            if (
+                !Auth::attempt(
+                    [
+                        $field => $credentials['login'],
+                        'password' => $credentials['password']
+                    ],
+                    $this->boolean('remember')
+                )
+            ) {
+                RateLimiter::hit($this->throttleKey());
+    
+                throw ValidationException::withMessages([
+                    'login' => trans('auth.failed'), 
+                ]);
+            }    
+
+        RateLimiter::clear($this->throttleKey());
+    }
+```
+In `resources/js/Pages/Auth/Login.vue`
+```vue
+<script setup>
+const form = useForm({
+    login: '',
+    password: '',
+    remember: false,
+});
+</script>
+            <div>
+                <InputLabel for="login" value="Email or Username" />
+
+                <TextInput
+                    id="login"
+                    type="text"
+                    class="mt-1 block w-full"
+                    v-model="form.login"
+                    required
+                    autofocus
+                    autocomplete="login"
+                />
+
+                <InputError class="mt-2" :message="form.errors.login" />
+            </div>
+```
+
+### Add username in registration form
+In `resources/js/Pages/Auth/Register.vue`
+```vue
+<script setup>
+const form = useForm({
+    name: '',
+    email: '',
+    username: '',
+    password: '',
+    password_confirmation: '',
+});
+</script>
+
+            <div class="mt-4">
+                <InputLabel for="username" value="Username" />
+
+                <TextInput
+                    id="username"
+                    type="text"
+                    class="mt-1 block w-full"
+                    v-model="form.username"
+                    required
+                    autocomplete="username"
+                />
+
+                <InputError class="mt-2" :message="form.errors.username" />
+            </div>
+```
+In `app/Http/Controllers/Auth/RegisteredUserController.php`
+
+```php
+$request->validate([
+            'name' => 'required|string|max:255',
+            'username' => 'required|unique:'.User::class,
+            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'username' => $request->username,
+            'password' => Hash::make($request->password),
+        ]);
+```
+
+
+
+### Implement Email Verification
+
+Inside the `.env` file edit these
+```ini
+MAIL_MAILER=smtp
+MAIL_SCHEME=null
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=465
+MAIL_USERNAME=yourmail@gmail.com
+MAIL_PASSWORD=yourpass
+MAIL_ENCRYPTION=ssl
+MAIL_FROM_ADDRESS="yourmail@gmail.com"
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+In `app/Models/User.php` add these
+```php
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+class User extends Authenticatable implements MustVerifyEmail
+{
+
+}
+```
 
