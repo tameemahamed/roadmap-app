@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('roadmap_id')->constrained('roadmaps');
             $table->text('content');
-            $table->boolean('edited');
+            $table->boolean('edited')->default(0);
             $table->timestamps();
         });
     }

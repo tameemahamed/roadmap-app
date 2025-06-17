@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('comment_id')->constrained('roadmap_comments');
             $table->foreignId('user_id')->constrained('users');
             $table->text('content');
-            $table->boolean('edited');
+            $table->boolean('edited')->default(0);
             $table->timestamps();
         });
     }
