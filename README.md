@@ -114,7 +114,7 @@ php artisan db:seed
 ```
 
 ## User Authentication
-Laravel Breeze provides user authentication by default. But it does not comes with `Login using username and password`. Also it does not provides `Email verification` by default. So we will implement these first.
+Laravel Breeze provides user authentication by default. But it does not comes along with `Login using username and password`. Also it does not provides `Email verification` by default. So we will implement these first.
 
 ### Login Using Username and Password
 In `app/Models/User.php`
@@ -221,7 +221,7 @@ const form = useForm({
 In `app/Http/Controllers/Auth/RegisteredUserController.php`
 
 ```php
-$request->validate([
+        $request->validate([
             'name' => 'required|string|max:255',
             'username' => 'required|unique:'.User::class,
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
@@ -242,6 +242,8 @@ $request->validate([
 
 Inside the `.env` file edit these
 ```ini
+APP_NAME="Roadmap App"
+
 MAIL_MAILER=smtp
 MAIL_SCHEME=null
 MAIL_HOST=smtp.gmail.com
@@ -262,4 +264,135 @@ class User extends Authenticatable implements MustVerifyEmail
 
 }
 ```
+## Optimize Lines of Codes
+In `resources/js/app.js`
+```js
+import { createInertiaApp, Head, Link } from '@inertiajs/vue3';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+
+    setup({ el, App, props, plugin }) {
+        return createApp({ render: () => h(App, props) })
+            .use(plugin)
+            .use(ZiggyVue)
+            .component('Link', Link)
+            .component('Head', Head)
+            .component('AuthenticatedLayout', AuthenticatedLayout)
+            .mount(el);
+    },
+```
+Now we can remove these followings from `resources/js/*.vue`
+```vue
+<script setup>
+import { createInertiaApp, Head, Link } from '@inertiajs/vue3';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+</script>
+```
+
+## Make API
+
+### Run Command to Create API
+```bash
+php artisan install:api
+```
+
+Add these in `app/Models/User.php`
+```php
+use Laravel\Sanctum\HasApiTokens;
+class User extends Authenticatable
+{
+    use HasApiTokens, HasFactory, Notifiable;
+    /*
+        rest of the codes
+    */
+
+}
+```
+
+Now we need to create and put authorization tokens in `session()` method. To implement these go through `app/Http/Controllers/Auth/AuthenticatedSessionController.php` and add these
+```php
+    public function store(LoginRequest $request): RedirectResponse
+    {
+        $request->authenticate();
+
+        $request->session()->regenerate();
+
+        $user = Auth::user();
+        $token = $user->createToken($user->id)->plainTextToken;
+
+        $request->session()->put('auth_token', $token);
+
+        return redirect()->intended(route('dashboard', absolute: false));
+    }
+
+    public function destroy(Request $request): RedirectResponse
+    {
+        Auth::guard('web')->logout();
+
+        $request->session()->forget('auth_token');
+
+        $request->session()->invalidate();
+
+        $request->session()->regenerateToken();
+
+        return redirect('/');
+    }
+```
+For these an `api key` is generated everytime a user logs in and gets destroyed when the user logs out.<br>
+
+
+Also in `app/Http/Controllers/Auth/RegisteredUserController.php` add these.
+```php
+        $token = $user->createToken($user->id)->plainTextToken;
+
+        $request->session()->put('auth_token', $token);
+
+        event(new Registered($user));
+```
+Upon registering an user is redirected to the `/dashboard` route. So we need to generate an `api key` for a newly registered user.
+
+Now we need to add the token to `Inertia.js` shared props in `HandleInertiaRequests.php` middleware
+```php
+        return [
+            ...parent::share($request),
+            'auth' => [
+                'user' => $request->user(),
+            ],
+            'auth_token'  => $request->session()->get('auth_token'),
+        ];
+```
+
+### Make API Routes
+In `routes/api.php` we can make api routes. Also `auth:sanctum` middleware is used for authentications. For which we actually need that `auth_token`.
+
+```php
+// we will do this part later. just I want to say that everything just works like a charm. :)
+```
+
+### Use API in VueJs
+```vue
+<script setup>
+import axios from 'axios';
+import { onMounted } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+
+const page = usePage();
+
+onMounted(() => {
+  // Create headers with auth token
+    const headers = {};
+    if (page.props.auth_token) {
+        headers['Authorization'] = `Bearer ${page.props.auth_token}`;
+    }
+
+    axios.get('/api/your_api_route', { headers })
+        .then(response => {
+        
+        })
+        .catch(error => {
+        
+        });
+});
+</script>
+```
+
 
