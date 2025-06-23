@@ -26,7 +26,7 @@ class DatabaseSeeder extends Seeder
             // RaodmapUpvotesTableSeeder::class,
             // RoadmapCommentsTableSeeder::class,
             // RoadmapCommentRepliesTableSeeder::class,
-            TagsTableSeeder::class
+            // TagsTableSeeder::class
         ]);
     }
 }

@@ -14,9 +14,9 @@ return new class extends Migration
         //
         Schema::create('roadmap_upvotes', function(Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users');
-            $table->foreignId('roadmap_id')->constrained('roadmaps');
-            $table->timestamp('added_at');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('roadmap_id')->constrained('roadmaps')->onDelete('cascade');
+            $table->timestamp('added_at')->useCurrent();
         });
     }
 

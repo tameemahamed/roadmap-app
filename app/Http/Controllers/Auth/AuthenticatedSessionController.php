@@ -38,7 +38,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->put('auth_token', $token);
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->intended(route('roadmap', absolute: false));
     }
 
     /**

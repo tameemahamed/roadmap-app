@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('description');
-            $table->foreignId('creator_user_id')->constrained('users');
+            $table->foreignId('creator_user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('status_id')->constrained('statuses');
             $table->timestamp('preview_available_date')->nullable();
             $table->timestamp('rollout_start_date')->nullable();

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RoadmapController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -16,7 +17,20 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function() {
     Route::inertia('/dashboard', 'Dashboard')->name('dashboard');
-    Route::inertia('/roadmap', 'Roadmap')->name('roadmap');
+    Route::inertia('/roadmap', 'Roadmaps')->name('roadmap');
+    Route::get('/roadmap/{roadmap_id}', function($roadmap_id) {
+        return Inertia::render('Roadmap', [
+            'roadmap_id' => $roadmap_id
+        ]);
+    });
+    Route::post('/liked', [RoadmapController::class, 'liked'])->name('liked.roadmap');
+    Route::post('/addComment', [RoadmapController::class, 'addComment']);
+    Route::post('/addReply', [RoadmapController::class, 'addReply']);
+    Route::post('/editComment', [RoadmapController::class, 'editComment']);
+    Route::post('/deleteComment', [RoadmapController::class, 'deleteComment']);
+    Route::post('/editReply', [RoadmapController::class, 'editReply']);
+    Route::post('/deleteReply', [RoadmapController::class, 'deleteReply']);
+
 });
 
 Route::middleware('auth')->group(function () {
