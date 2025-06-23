@@ -6,6 +6,8 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import RoadmapLayout from './Layouts/RoadmapLayout.vue';
+import CommentLayout from './Layouts/CommentLayout.vue';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -23,6 +25,8 @@ createInertiaApp({
             .component('Link', Link)
             .component('Head', Head)
             .component('AuthenticatedLayout', AuthenticatedLayout)
+            .component('RoadmapLayout', RoadmapLayout)
+            .component('CommentLayout', CommentLayout)
             .mount(el);
     },
     progress: {
