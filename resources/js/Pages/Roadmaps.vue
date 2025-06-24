@@ -3,19 +3,24 @@ import { onMounted, ref, watch } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 
-// filter state
+/**
+ * Roadmaps Component
+ * Displays a list of roadmaps with filtering capabilities
+ * Allows filtering by status and sorting by upvotes
+ */
+// Filter state variables
 const status_IDs = ref([1,2,3]);
 const filter_upvotes = ref('0');
 const roadmaps = ref([]);
 const page = usePage();
 
-// prepare auth header if present
+// prepare auth header if token is present
 const headers = {};
 if (page.props.auth_token) {
   headers['Authorization'] = `Bearer ${page.props.auth_token}`;
 }
 
-// fetch function
+// Fetch roadmaps based on current filters
 const fetchRoadmaps = () => {
   // join status IDs with comma
   const statuses = status_IDs.value.length ? status_IDs.value.join(',') : '';
@@ -29,9 +34,9 @@ const fetchRoadmaps = () => {
     });
 };
 
-// initial load
+// Initial fetch
 onMounted(fetchRoadmaps);
-// refetch whenever filters change
+// Refetch whenever filters change
 watch([status_IDs, filter_upvotes], fetchRoadmaps);
 </script>
 

@@ -1,4 +1,128 @@
+# Table of Contents
+
+* [Roadmap App](#roadmap-app)
+
+  * [Technology Stack](#technology-stack)
+
+    * [Backend](#backend)
+    * [Frontend](#frontend)
+  * [Features](#features)
+    * [User Authentication](#user-authentication)
+    * [Roadmap Display](#roadmap-display)
+    * [Upvoting](#upvoting)
+    * [Commenting](#commenting)
+    * [Nested Comment Replies](#nested-comment-replies)
+  * [Run The Project](#run-the-project)
+
+    * [Clone Repository](#clone-repository)
+    * [Setup `.env` File](#setup-env-file)
+    * [Run Project](#run-project)
+  * [Project Setup](#project-setup)
+
+    * [Create Laravel Project](#create-laravel-project)
+    * [Fix Little Issues](#fix-little-issues)
+  * [Write Database Migrations](#write-database-migrations)
+
+    * [Database Schema](#database-schema)
+    * [Create migrations](#create-migrations)
+    * [Run the Migrations](#run-the-migrations)
+  * [Make Seeders](#make-seeders)
+
+    * [Create Seeders](#create-seeders)
+    * [Create Models for each Table](#create-models-for-each-table)
+    * [Write Codes](#write-codes)
+    * [Run Seeders](#run-seeders)
+  * [User Authentication](#user-authentication)
+
+    * [Login Using Username and Password](#login-using-username-and-password)
+    * [Add username in registration form](#add-username-in-registration-form)
+    * [Implement Email Verification](#implement-email-verification)
+  * [Optimize Lines of Codes](#optimize-lines-of-codes)
+  * [Make API](#make-api)
+
+    * [Make API Routes](#make-api-routes)
+    * [Use API in VueJs](#use-api-in-vuejs)
+  * [Make APIs for Roadmap Pages](#make-apis-for-roadmap-pages)
+  * [Make Frontend](#make-frontend)
+  * [Make Backend](#make-backend)
+
+    * [Process Api calls](#process-api-calls)
+    * [Process Post Requests](#process-post-requests)
+  * [Problems in the Project](#problems-in-the-project)
+
+    * [Refreshes Page](#refreshes-page)
+    * [Only one controller to handle all of the requests](#only-one-controller-to-handle-all-of-the-requests)
+
 # Roadmap App
+## Technology Stack
+### Backend
+For the backend I will be using Laravel 12. 
+### Frontend
+For the frontend I used `VueJs` along with `InertiaJs`.
+
+## Features
+### User Authentication
+- User should Signup using name, email, username, password.
+- After signingup a verification email is sent to the email of the user.
+- User should also need to verify the email address to see and interect with the content of the website(e.g. Roadmaps, upvote, comment etc.)
+- Users can Login using email/username and password.
+### Roadmap Display
+- This app has a clean intutive UI to display roadmap items.
+- Users can filter roadmap items based on statuses(Planned, In progress, Completed).
+- Users can also filter roadmaps based on popularity(upvotes).
+- The roadmap card was inspired from the [Microsoft365 Roadmap](https://www.microsoft.com/en-us/microsoft-365/roadmap) card. 
+### Upvoting
+- Users can upvote roadmap items. Also can remove his own upvote.
+- User can not upvote a roadmap item if it is already upvotted by him.
+### Commenting
+- Users are able to leave comments on any roadmap item to provide feeback, ask questions or discuss further.
+- Users are able able to edit or delete their own comments.
+- Deleted comments are removed from UI and databse.
+- Shows `Edited` if a comment is edited.
+### Nested Comment Replies
+- Users are able to reply to other comments in a nested format. This creates a conversation chain under each comments.
+- Limited the nesing dept to 3 levels to maintain readability and prevent clutter.
+- Each nested comment is visually indented to indiciate its hierarchy in the thread.
+
+## Run The Project
+### Clone Repository
+```bash
+git clone https://github.com/tameemahamed/roadmap-app.git
+cd roadmap-app
+npm install
+composer install
+```
+### Setup `.env` File
+Copy that `.env.example` file and paste it it into `.env`. Make sure to edit the followings as you want to:
+```ini
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=roadmap_app
+DB_USERNAME=root
+DB_PASSWORD=
+
+MAIL_MAILER=smtp
+MAIL_SCHEME=null
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=465
+MAIL_USERNAME=null # set yours one
+MAIL_PASSWORD=null # set yours one
+MAIL_ENCRYPTION=ssl
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+```
+### Run Project
+```bash
+npm run build
+php artisan key:generate
+php artisan migrate
+php artisan db:seed # This is to seed random data to the database
+php artisan serve
+```
+After this:
+- Navigate to the link shown in the terminal.
+- Navigate to Login page (the password is `password` for every users) 
 
 ## Project Setup
 
@@ -28,6 +152,9 @@ In `bootstrap/app.php` add these lines
 ```
 
 ## Write Database Migrations
+### Database Schema
+As there was not any exact information about the database schema for `roadmap` in the task requirements`(Roadmap items will be predefined and come from the database)`, I have considered it as like as `microsoft 365 roadmaps` layout. And according to this I will be working with the following schema: <br>
+![Database Schema Image](https://i.ibb.co/s97p9nMR/Roadmap-App-2.png)
 ### Create migrations
 ```bash
 php artisan make:migration statuses
@@ -46,7 +173,7 @@ php artisan make:migration roadmap_items
 ```
 
 ### Run the Migrations
-Obviously you have to write code for them. Or just copy them from this repo. After writing
+You can find the migrations code in this repository in `database/migrations` directory.
 ```bash
 php artisan migrate:fresh
 ```
@@ -395,4 +522,124 @@ onMounted(() => {
 </script>
 ```
 
+## Make APIs for Roadmap Pages
+### Make Controller
+```bash
+php artisan make:controller RoadmapController
+```
+Now in `app/Http/Controllers/RoadmapController.php` write the codes responses
+
+### Make APIs
+In `routes/api.php` make the api route to get roadmaps
+```php
+Route::middleware('auth:sanctum')->group(function() {
+    Route::get('/roadmaps/{status_ids}/{filter_upvotes}', [RoadmapController::class, 'filteredRoadmaps']);
+});
+```
+Here `auth:sanctum` middleware is added so that only authenticated users can call that api.
+
+## Make Frontend
+For frontend we will use VueJs. 
+### Make Frontend Layouts
+Layouts are very useful for code reuseability. For this reason we will be making two layouts. 
+- For RoadmapCard in `RoadmapLayout.vue`
+- For RoadmapComments in `RoadmapCommentLayout.vue`
+
+### Make Frontend Pages (`/roadmap`)
+At first in `web.php` we have to register the route `/roadmap`.
+```php
+Route::middleware(['auth', 'verified'])->group(function() {
+    // rest of the codes
+    Route::inertia('/roadmap', 'Roadmaps')->name('roadmap');    
+});
+```
+Now it will render the page `resources/js/Pages/Roadmaps.vue`. You will find the code for this in that repository.
+It will call the `RoadmapLayout.vue` for each roadmaps.
+
+### Make Frontend Pages (`/roadmap/{roadmap_id}`)
+Make the route in `web.php`
+```php
+Route::middleware(['auth', 'verified'])->group(function() {
+    Route::get('/roadmap/{roadmap_id}', function($roadmap_id) {
+        return Inertia::render('Roadmap', [
+            'roadmap_id' => $roadmap_id
+        ]);
+    });
+});
+```
+As you can see, It will then render the `Roadmap.vue` page. Also It passes a prop `roadmap_id`. To get or use the prop we will do the following:
+```vue
+<script>
+const props = defineProps({
+    roadmap_id: {
+        type: [Number, String],
+        required:true}
+})
+</script>
+```
+
+It has two child layouts `RoadmapLayout.vue` and `CommentLayout.vue`. Please see the source codes in `resources/js/Pages` and in `resources/js/Layouts` directory.
+
+## Make Backend
+To process API calls and Post requests from the frontend, a relevant backend is necessary.
+
+### Process Api calls
+In `routes/api.php` make routes to call the API
+```php
+use App\Http\Controllers\RoadmapController;
+
+Route::middleware('auth:sanctum')->group(function() {
+    Route::get('/roadmaps/{status_ids}/{filter_upvotes}', [RoadmapController::class, 'filteredRoadmaps']);
+    Route::get('/roadmap/{roadmap_id}', [RoadmapController::class, 'selectedRoadmap']);
+});
+```
+Now in `app/Http/Controllers/RoadmapController.php`, we have done the work with `filteredRoadmaps` and `selectedRoadmap` methods.
+
+### Process Post Requests
+In `routes/web.php` make necessary post routes
+```php
+Route::middleware(['auth', 'verified'])->group(function() {
+    Route::post('/liked', [RoadmapController::class, 'liked'])->name('liked.roadmap');
+    Route::post('/addComment', [RoadmapController::class, 'addComment']);
+    Route::post('/addReply', [RoadmapController::class, 'addReply']);
+    Route::post('/editComment', [RoadmapController::class, 'editComment']);
+    Route::post('/deleteComment', [RoadmapController::class, 'deleteComment']);
+    Route::post('/editReply', [RoadmapController::class, 'editReply']);
+    Route::post('/deleteReply', [RoadmapController::class, 'deleteReply']);
+});
+```
+Now in `app/Http/Controllers/RoadmapController.php`
+```php
+    public function editComment(Request $req){
+        $comment_id = $req->comment_id;
+        $content = $req->content;
+        $user_id = Auth::id();
+        
+        RoadmapComment::where('id', $comment_id)
+            ->where('user_id', $user_id)
+            ->update([
+                'content' => $content,
+                'edited' => 1,
+                'updated_at' => now()
+            ]);
+    }
+
+    public function deleteComment(Request $req) {
+        $comment_id = $req->comment_id;
+        $user_id = Auth::id();
+        RoadmapComment::where('id', $comment_id)
+            ->where('user_id', $user_id)
+            ->delete();
+    }
+```
+As you can see that we also used `Auth::id()` to verify the user is authenticated or not. Also it checks if the edit request that user is making is his comment or not. Which ensures the security of the webapp and the users. 
+## Problems in the Project
+The Project that we have just made has some issues.
+### Refreshes Page
+Every time a user post, edit or delete a comment or a reply, the webpage reloads. For this reason the user gets to the top of the page again. 
+For this reason the user will have to scroll back to the place where he/she did any one of the operations mentioned. 
+Also for this, hits to the database increases. 
+### Only one controller to handle all of the requests
+As you noticed, there are only one controller for most of the api calls and post requests. This is a best practice to use seperate controllers for seperate tasks. 
+This could be solved by creating another controller in `app/Http/Controllers/CommentsController.php` and use comment and reply methods from `RoadmapController.php` to `CommentsController.php`. Which does code structure more accurate.
 

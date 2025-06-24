@@ -2,7 +2,14 @@
 import { ref, computed } from 'vue'
 import { format } from 'date-fns'
 import { router } from '@inertiajs/vue3';
-const expanded = ref(false)
+
+/**
+ * Roadmap Layout Component
+ * Displays roadmap card with expandable details
+ * Handles upvoting functionality
+ */
+
+const expanded = ref(false) // controls expanded/collapsed state
 
 const props = defineProps({
   roadmap: {
@@ -11,6 +18,8 @@ const props = defineProps({
   }
 })
 
+
+// date formattings
 const previewDate = computed(() =>
   props.roadmap.preview_available_date
     ? format(new Date(props.roadmap.preview_available_date), 'MMM yyyy')
@@ -36,8 +45,9 @@ const updateDate = computed(() => {
 })
 
 
-const votted = ref(props.roadmap.upvotted !== 0)
+const votted = ref(props.roadmap.upvotted !== 0) // upvote status
 
+// Handle upvote button click
 const likeButtonPress = () => {
   router.post('/liked', { roadmap_id: props.roadmap.id }, {
     onSuccess: () => {
@@ -53,6 +63,7 @@ const likeButtonPress = () => {
   })
 }
 
+// status indicator squares
 const squares = computed(() => {
   const n = props.roadmap.status_id
   return Array.from({ length: 3 }, (_, i) => i < n)
@@ -63,7 +74,7 @@ const squares = computed(() => {
 
 <template>
   <div class="bg-gray-800 rounded-xl p-6 max-w-6xl mx-auto border border-gray-700">
-    <!-- Header Row: Title and Status on left, Dates and Expand button on right -->
+    <!-- Header: Title, status, dates and expand button -->
     <div class="flex items-start justify-between mb-4">
       <div class="flex-1">
         <!-- Title -->
@@ -80,15 +91,11 @@ const squares = computed(() => {
             </div>
           </div>
           <span class="text-blue-400 text-sm font-medium">{{ roadmap.status }}</span>
-          <!-- using for debugging -->
-          <!-- <span class="text-blue-400 text-sm font-medium">{{ props.roadmap.upvotted }}</span> -->
-          <!-- it is showing the correct state of the prop -->
         </div>
       </div>
 
-      <!-- Right side: Dates and Expand button -->
+      <!-- Date information and expand toggle -->
       <div class="flex items-start gap-8">
-        <!-- Dates -->
         <div class="flex gap-8">
           <div v-if="previewDate" class="text-right">
             <div class="text-blue-400 text-sm font-medium">PREVIEW AVAILABLE</div>
@@ -107,7 +114,7 @@ const squares = computed(() => {
       </div>
     </div>
 
-    <!-- Tags Row -->
+    <!-- Tags Display -->
     <div class="flex flex-wrap gap-2 mb-6">
       <span v-for="tag in roadmap.tags" :key="tag" class="bg-gray-700 text-gray-300 px-3 py-1.5 rounded-md text-sm">
         {{ tag }}
@@ -133,8 +140,6 @@ const squares = computed(() => {
 
     <!-- Upvote and comment buttons -->
     <div class="flex items-center gap-6 mt-6">
-      <!-- not working properly as a child of `Roadmap.vue` but working properly for `Roadmaps.vue` -->
-      <!-- the problem is that it is always blue doesn't matter if the post is upvotted or not -->
       <button @click="likeButtonPress" class="flex items-center gap-2"
         :class="votted ? 'text-blue-400' : 'text-gray-300 hover:text-white'">
         <img src="https://img.icons8.com/ios-glyphs/30/ffffff/thumb-up.png" alt="Upvote" class="w-5 h-5" />

@@ -3,9 +3,15 @@ import { ref, reactive } from 'vue'
 import { format } from 'date-fns'
 import { router } from '@inertiajs/vue3'
 
+/**
+ * Comment Component
+ * Handles display and management of comments and replies
+ * Supports: posting, replying, editing, deleting
+ */
+
 const props = defineProps({
   comments: {
-    type: Array,
+    type: Array, // Array of comments to display
     required: true,
   },
   roadmap_id: {
@@ -16,11 +22,13 @@ const props = defineProps({
 
 // State for replies per comment
 const expandedReplies = reactive({})
+
+// Toggles reply visibility
 function toggleReplies(commentId) {
   expandedReplies[commentId] = !expandedReplies[commentId]
 }
 
-// New comment
+// add new comment
 const newCommentContent = ref('')
 const postComment = () => {
   if (!newCommentContent.value.trim()) {
@@ -41,7 +49,7 @@ const postComment = () => {
   }
 }
 
-// New Reply
+// add new Reply
 const newReplyContent = reactive({})
 const postReply = (comment_id) => {
   const content = newReplyContent[comment_id]?.trim()
@@ -142,7 +150,7 @@ const deleteReply = (reply_id) => {
 
 <template>
   <div class="max-w-6xl mx-auto">
-    <!-- New Comment Box -->
+    <!-- new comment input -->
     <div class="bg-gray-800 rounded-xl p-6 mb-6 border border-gray-700">
       <textarea v-model="newCommentContent" rows="3" placeholder="Add a comment..."
         class="w-full bg-gray-700 text-gray-100 rounded-lg p-4 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"></textarea>
@@ -160,7 +168,7 @@ const deleteReply = (reply_id) => {
           }}</span>
       </div>
 
-      <!-- Comment Content -->
+      <!-- Comment content and edit UI -->
       <div v-if="editingComment">
         <div class="bg-gray-800 rounded-xl p-6 mb-6 border border-gray-700">
           <textarea v-model="editedCommentContent" rows="3" placeholder="Add a comment..."
@@ -184,6 +192,7 @@ const deleteReply = (reply_id) => {
       
       <!-- Replies -->
       <div v-if="comment.replies && comment.replies.length" class="ml-6 border-l border-gray-700 pl-4 space-y-4">
+        <!-- Display replies (limited when collapsed) -->
         <div v-for="(reply, idx) in (expandedReplies[comment.id] ? comment.replies : comment.replies.slice(0, 2))"
           :key="reply.id" class="bg-gray-700 rounded-lg p-4 border border-gray-600">
           <div class="flex justify-between items-center mb-2">
@@ -213,7 +222,7 @@ const deleteReply = (reply_id) => {
           </div>
         </div>
 
-        <!-- View More / Hide Replies Button -->
+        <!-- View more/hide replies toggle -->
         <div v-if="comment.replies.length > 2" class="mt-2">
           <button @click="toggleReplies(comment.id)" class="text-blue-400 text-sm font-medium hover:underline">
             {{ expandedReplies[comment.id] ? 'Hide replies'
@@ -223,7 +232,7 @@ const deleteReply = (reply_id) => {
 
 
       </div>
-      <!-- Reply Box -->
+      <!-- new reply input -->
       <div class="mt-4">
         <textarea v-model="newReplyContent[comment.id]" rows="2" placeholder="Write a reply..."
           class="w-full bg-gray-700 text-gray-100 rounded-lg p-3 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"></textarea>

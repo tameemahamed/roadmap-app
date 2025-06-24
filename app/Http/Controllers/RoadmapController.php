@@ -131,8 +131,10 @@ class RoadmapController extends Controller
     public function editComment(Request $req){
         $comment_id = $req->comment_id;
         $content = $req->content;
+        $user_id = Auth::id();
         
         RoadmapComment::where('id', $comment_id)
+            ->where('user_id', $user_id)
             ->update([
                 'content' => $content,
                 'edited' => 1,
@@ -142,7 +144,9 @@ class RoadmapController extends Controller
 
     public function deleteComment(Request $req) {
         $comment_id = $req->comment_id;
+        $user_id = Auth::id();
         RoadmapComment::where('id', $comment_id)
+            ->where('user_id', $user_id)
             ->delete();
     }
 
@@ -161,7 +165,9 @@ class RoadmapController extends Controller
     public function editReply(Request $req) {
         $reply_id = $req->reply_id;
         $content = $req->content;
+        $user_id = Auth::id();
         RoadmapCommentReply::where('id', $reply_id)
+            ->where('user_id', $user_id)
             ->update([
                 'content' => $content,
                 'edited' => 1,
@@ -171,7 +177,9 @@ class RoadmapController extends Controller
 
     public function deleteReply(Request $req) {
         $reply_id = $req->reply_id;
+        $user_id = Auth::id();
         RoadmapCommentReply::where('id', $reply_id)
+            ->where('user_id', $user_id)
             ->delete();
     }
 }
